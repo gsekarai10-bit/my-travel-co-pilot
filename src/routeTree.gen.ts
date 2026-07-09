@@ -9,38 +9,168 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiScrapeInspirationRouteImport } from './routes/api/scrape-inspiration'
+import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
+import { Route as ApiReceiptsScanRouteImport } from './routes/api/receipts/scan'
+import { Route as ApiBookingsConfirmRouteImport } from './routes/api/bookings/confirm'
+import { Route as AuthenticatedAppSettingsRouteImport } from './routes/_authenticated/app.settings'
+import { Route as ApiPublicHooksWhatsappAlertsRouteImport } from './routes/api/public/hooks/whatsapp-alerts'
 
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiScrapeInspirationRoute = ApiScrapeInspirationRouteImport.update({
+  id: '/api/scrape-inspiration',
+  path: '/api/scrape-inspiration',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiChatRoute = ApiChatRouteImport.update({
+  id: '/api/chat',
+  path: '/api/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAppIndexRoute = AuthenticatedAppIndexRouteImport.update({
+  id: '/app/',
+  path: '/app/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const ApiReceiptsScanRoute = ApiReceiptsScanRouteImport.update({
+  id: '/api/receipts/scan',
+  path: '/api/receipts/scan',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBookingsConfirmRoute = ApiBookingsConfirmRouteImport.update({
+  id: '/api/bookings/confirm',
+  path: '/api/bookings/confirm',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAppSettingsRoute =
+  AuthenticatedAppSettingsRouteImport.update({
+    id: '/app/settings',
+    path: '/app/settings',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const ApiPublicHooksWhatsappAlertsRoute =
+  ApiPublicHooksWhatsappAlertsRouteImport.update({
+    id: '/api/public/hooks/whatsapp-alerts',
+    path: '/api/public/hooks/whatsapp-alerts',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/api/chat': typeof ApiChatRoute
+  '/api/scrape-inspiration': typeof ApiScrapeInspirationRoute
+  '/app/settings': typeof AuthenticatedAppSettingsRoute
+  '/api/bookings/confirm': typeof ApiBookingsConfirmRoute
+  '/api/receipts/scan': typeof ApiReceiptsScanRoute
+  '/app/': typeof AuthenticatedAppIndexRoute
+  '/api/public/hooks/whatsapp-alerts': typeof ApiPublicHooksWhatsappAlertsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/api/chat': typeof ApiChatRoute
+  '/api/scrape-inspiration': typeof ApiScrapeInspirationRoute
+  '/app/settings': typeof AuthenticatedAppSettingsRoute
+  '/api/bookings/confirm': typeof ApiBookingsConfirmRoute
+  '/api/receipts/scan': typeof ApiReceiptsScanRoute
+  '/app': typeof AuthenticatedAppIndexRoute
+  '/api/public/hooks/whatsapp-alerts': typeof ApiPublicHooksWhatsappAlertsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/api/chat': typeof ApiChatRoute
+  '/api/scrape-inspiration': typeof ApiScrapeInspirationRoute
+  '/_authenticated/app/settings': typeof AuthenticatedAppSettingsRoute
+  '/api/bookings/confirm': typeof ApiBookingsConfirmRoute
+  '/api/receipts/scan': typeof ApiReceiptsScanRoute
+  '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
+  '/api/public/hooks/whatsapp-alerts': typeof ApiPublicHooksWhatsappAlertsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/api/chat'
+    | '/api/scrape-inspiration'
+    | '/app/settings'
+    | '/api/bookings/confirm'
+    | '/api/receipts/scan'
+    | '/app/'
+    | '/api/public/hooks/whatsapp-alerts'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/auth'
+    | '/api/chat'
+    | '/api/scrape-inspiration'
+    | '/app/settings'
+    | '/api/bookings/confirm'
+    | '/api/receipts/scan'
+    | '/app'
+    | '/api/public/hooks/whatsapp-alerts'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/api/chat'
+    | '/api/scrape-inspiration'
+    | '/_authenticated/app/settings'
+    | '/api/bookings/confirm'
+    | '/api/receipts/scan'
+    | '/_authenticated/app/'
+    | '/api/public/hooks/whatsapp-alerts'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
+  ApiChatRoute: typeof ApiChatRoute
+  ApiScrapeInspirationRoute: typeof ApiScrapeInspirationRoute
+  ApiBookingsConfirmRoute: typeof ApiBookingsConfirmRoute
+  ApiReceiptsScanRoute: typeof ApiReceiptsScanRoute
+  ApiPublicHooksWhatsappAlertsRoute: typeof ApiPublicHooksWhatsappAlertsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +178,81 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/scrape-inspiration': {
+      id: '/api/scrape-inspiration'
+      path: '/api/scrape-inspiration'
+      fullPath: '/api/scrape-inspiration'
+      preLoaderRoute: typeof ApiScrapeInspirationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/chat': {
+      id: '/api/chat'
+      path: '/api/chat'
+      fullPath: '/api/chat'
+      preLoaderRoute: typeof ApiChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/app/': {
+      id: '/_authenticated/app/'
+      path: '/app'
+      fullPath: '/app/'
+      preLoaderRoute: typeof AuthenticatedAppIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/receipts/scan': {
+      id: '/api/receipts/scan'
+      path: '/api/receipts/scan'
+      fullPath: '/api/receipts/scan'
+      preLoaderRoute: typeof ApiReceiptsScanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/bookings/confirm': {
+      id: '/api/bookings/confirm'
+      path: '/api/bookings/confirm'
+      fullPath: '/api/bookings/confirm'
+      preLoaderRoute: typeof ApiBookingsConfirmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/app/settings': {
+      id: '/_authenticated/app/settings'
+      path: '/app/settings'
+      fullPath: '/app/settings'
+      preLoaderRoute: typeof AuthenticatedAppSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/public/hooks/whatsapp-alerts': {
+      id: '/api/public/hooks/whatsapp-alerts'
+      path: '/api/public/hooks/whatsapp-alerts'
+      fullPath: '/api/public/hooks/whatsapp-alerts'
+      preLoaderRoute: typeof ApiPublicHooksWhatsappAlertsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAppSettingsRoute: typeof AuthenticatedAppSettingsRoute
+  AuthenticatedAppIndexRoute: typeof AuthenticatedAppIndexRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAppSettingsRoute: AuthenticatedAppSettingsRoute,
+  AuthenticatedAppIndexRoute: AuthenticatedAppIndexRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
+  ApiChatRoute: ApiChatRoute,
+  ApiScrapeInspirationRoute: ApiScrapeInspirationRoute,
+  ApiBookingsConfirmRoute: ApiBookingsConfirmRoute,
+  ApiReceiptsScanRoute: ApiReceiptsScanRoute,
+  ApiPublicHooksWhatsappAlertsRoute: ApiPublicHooksWhatsappAlertsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
