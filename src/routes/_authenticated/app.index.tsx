@@ -208,7 +208,7 @@ function Workspace() {
                     onSelect={setActiveItemId}
                     onDelete={(id) => removeItem.mutate(id)}
                     onDayChange={setDayNumber}
-                    onAdd={(slot) => addItem.mutate({ slot })}
+                    onAdd={(draft) => addItem.mutateAsync({ slot: draft.time_slot, draft })}
                   />
 
                   <div className="space-y-3 border-t border-border/60 bg-card/40 p-3">
