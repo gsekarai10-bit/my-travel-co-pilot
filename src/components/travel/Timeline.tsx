@@ -1,6 +1,7 @@
 import { Sun, Sunrise, Moon, Plus } from "lucide-react";
 import { PlaceCard } from "./PlaceCard";
 import { Button } from "@/components/ui/button";
+import { ActivityFormDialog } from "./ActivityFormDialog";
 import type { ItineraryItem, TimeSlot } from "@/lib/trips/types";
 import { SLOTS } from "@/lib/trips/types";
 
@@ -13,7 +14,7 @@ interface Props {
   onSelect: (id: string) => void;
   onDelete: (id: string) => void;
   onDayChange: (day: number) => void;
-  onAdd: (slot: TimeSlot) => void;
+  onAdd: (draft: Partial<ItineraryItem> & { time_slot: TimeSlot }) => Promise<void> | void;
 }
 
 const slotMeta: Record<TimeSlot, { label: string; icon: typeof Sun }> = {
