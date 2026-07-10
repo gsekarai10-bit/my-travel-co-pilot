@@ -61,9 +61,16 @@ export function Timeline({ items, dayNumber, totalDays, activeItemId, onHover, o
                   <h4 className="text-sm font-semibold">{meta.label}</h4>
                   <span className="text-xs text-muted-foreground">{list.length} planned</span>
                 </div>
-                <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => onAdd(slot)}>
-                  <Plus className="mr-1 size-3.5" /> Add
-                </Button>
+                <ActivityFormDialog
+                  defaultSlot={slot}
+                  dayNumber={dayNumber}
+                  onSubmit={(draft) => onAdd(draft)}
+                  trigger={
+                    <Button variant="ghost" size="sm" className="h-7 text-xs">
+                      <Plus className="mr-1 size-3.5" /> Add
+                    </Button>
+                  }
+                />
               </div>
 
               {list.length === 0 ? (
