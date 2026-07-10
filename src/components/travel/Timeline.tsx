@@ -1,6 +1,7 @@
 import { Sun, Sunrise, Moon, Plus } from "lucide-react";
 import { PlaceCard } from "./PlaceCard";
 import { Button } from "@/components/ui/button";
+import { ActivityFormDialog } from "./ActivityFormDialog";
 import type { ItineraryItem, TimeSlot } from "@/lib/trips/types";
 import { SLOTS } from "@/lib/trips/types";
 
@@ -13,7 +14,7 @@ interface Props {
   onSelect: (id: string) => void;
   onDelete: (id: string) => void;
   onDayChange: (day: number) => void;
-  onAdd: (slot: TimeSlot) => void;
+  onAdd: (draft: Partial<ItineraryItem> & { time_slot: TimeSlot }) => Promise<void> | void;
 }
 
 const slotMeta: Record<TimeSlot, { label: string; icon: typeof Sun }> = {
@@ -60,9 +61,16 @@ export function Timeline({ items, dayNumber, totalDays, activeItemId, onHover, o
                   <h4 className="text-sm font-semibold">{meta.label}</h4>
                   <span className="text-xs text-muted-foreground">{list.length} planned</span>
                 </div>
-                <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => onAdd(slot)}>
-                  <Plus className="mr-1 size-3.5" /> Add
-                </Button>
+                <ActivityFormDialog
+                  defaultSlot={slot}
+                  dayNumber={dayNumber}
+                  onSubmit={(draft) => onAdd(draft)}
+                  trigger={
+                    <Button variant="ghost" size="sm" className="h-7 text-xs">
+                      <Plus className="mr-1 size-3.5" /> Add
+                    </Button>
+                  }
+                />
               </div>
 
               {list.length === 0 ? (
