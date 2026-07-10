@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Compass, LayoutDashboard, Settings, LogOut } from "lucide-react";
+import { Compass, LayoutDashboard, Luggage, Settings, LogOut } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -18,6 +18,7 @@ import { toast } from "sonner";
 
 const items = [
   { title: "Workspace", url: "/app", icon: LayoutDashboard },
+  { title: "My trips", url: "/app/trips", icon: Luggage },
   { title: "Settings", url: "/app/settings", icon: Settings },
 ];
 
