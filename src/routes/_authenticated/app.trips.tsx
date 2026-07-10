@@ -137,9 +137,7 @@ function TripCard({ trip, onDelete }: { trip: Trip; onDelete: (id: string) => vo
         </div>
         <div className="flex gap-2 pt-1">
           <Button asChild size="sm" className="flex-1" style={{ background: "var(--gradient-hero)" }}>
-            <Link to="/app" search={{ trip: trip.id } as never}>
-              Open
-            </Link>
+            <Link to="/app">Open</Link>
           </Button>
           <Button
             size="sm"

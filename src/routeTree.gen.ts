@@ -17,6 +17,7 @@ import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
 import { Route as ApiReceiptsScanRouteImport } from './routes/api/receipts/scan'
 import { Route as ApiBookingsConfirmRouteImport } from './routes/api/bookings/confirm'
+import { Route as AuthenticatedAppTripsRouteImport } from './routes/_authenticated/app.trips'
 import { Route as AuthenticatedAppSettingsRouteImport } from './routes/_authenticated/app.settings'
 import { Route as ApiPublicHooksWhatsappAlertsRouteImport } from './routes/api/public/hooks/whatsapp-alerts'
 
@@ -59,6 +60,11 @@ const ApiBookingsConfirmRoute = ApiBookingsConfirmRouteImport.update({
   path: '/api/bookings/confirm',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAppTripsRoute = AuthenticatedAppTripsRouteImport.update({
+  id: '/app/trips',
+  path: '/app/trips',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAppSettingsRoute =
   AuthenticatedAppSettingsRouteImport.update({
     id: '/app/settings',
@@ -78,6 +84,7 @@ export interface FileRoutesByFullPath {
   '/api/chat': typeof ApiChatRoute
   '/api/scrape-inspiration': typeof ApiScrapeInspirationRoute
   '/app/settings': typeof AuthenticatedAppSettingsRoute
+  '/app/trips': typeof AuthenticatedAppTripsRoute
   '/api/bookings/confirm': typeof ApiBookingsConfirmRoute
   '/api/receipts/scan': typeof ApiReceiptsScanRoute
   '/app/': typeof AuthenticatedAppIndexRoute
@@ -89,6 +96,7 @@ export interface FileRoutesByTo {
   '/api/chat': typeof ApiChatRoute
   '/api/scrape-inspiration': typeof ApiScrapeInspirationRoute
   '/app/settings': typeof AuthenticatedAppSettingsRoute
+  '/app/trips': typeof AuthenticatedAppTripsRoute
   '/api/bookings/confirm': typeof ApiBookingsConfirmRoute
   '/api/receipts/scan': typeof ApiReceiptsScanRoute
   '/app': typeof AuthenticatedAppIndexRoute
@@ -102,6 +110,7 @@ export interface FileRoutesById {
   '/api/chat': typeof ApiChatRoute
   '/api/scrape-inspiration': typeof ApiScrapeInspirationRoute
   '/_authenticated/app/settings': typeof AuthenticatedAppSettingsRoute
+  '/_authenticated/app/trips': typeof AuthenticatedAppTripsRoute
   '/api/bookings/confirm': typeof ApiBookingsConfirmRoute
   '/api/receipts/scan': typeof ApiReceiptsScanRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
@@ -115,6 +124,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/scrape-inspiration'
     | '/app/settings'
+    | '/app/trips'
     | '/api/bookings/confirm'
     | '/api/receipts/scan'
     | '/app/'
@@ -126,6 +136,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/scrape-inspiration'
     | '/app/settings'
+    | '/app/trips'
     | '/api/bookings/confirm'
     | '/api/receipts/scan'
     | '/app'
@@ -138,6 +149,7 @@ export interface FileRouteTypes {
     | '/api/chat'
     | '/api/scrape-inspiration'
     | '/_authenticated/app/settings'
+    | '/_authenticated/app/trips'
     | '/api/bookings/confirm'
     | '/api/receipts/scan'
     | '/_authenticated/app/'
@@ -213,6 +225,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiBookingsConfirmRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/app/trips': {
+      id: '/_authenticated/app/trips'
+      path: '/app/trips'
+      fullPath: '/app/trips'
+      preLoaderRoute: typeof AuthenticatedAppTripsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/app/settings': {
       id: '/_authenticated/app/settings'
       path: '/app/settings'
@@ -232,11 +251,13 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAppSettingsRoute: typeof AuthenticatedAppSettingsRoute
+  AuthenticatedAppTripsRoute: typeof AuthenticatedAppTripsRoute
   AuthenticatedAppIndexRoute: typeof AuthenticatedAppIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAppSettingsRoute: AuthenticatedAppSettingsRoute,
+  AuthenticatedAppTripsRoute: AuthenticatedAppTripsRoute,
   AuthenticatedAppIndexRoute: AuthenticatedAppIndexRoute,
 }
 
@@ -256,13 +277,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
