@@ -107,7 +107,7 @@ export function ActivityFormDialog({ trigger, defaultSlot = "morning", dayNumber
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>Type</Label>
-              <Select value={placeType} onValueChange={setPlaceType}>
+              <Select value={placeType} onValueChange={(v) => { setPlaceType(v); setTitle(""); }}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {PLACE_TYPES.map((t) => <SelectItem key={t} value={t} className="capitalize">{t}</SelectItem>)}
