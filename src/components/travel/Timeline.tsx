@@ -15,6 +15,9 @@ interface Props {
   onDelete: (id: string) => void;
   onDayChange: (day: number) => void;
   onAdd: (draft: Partial<ItineraryItem> & { time_slot: TimeSlot }) => Promise<void> | void;
+  originLat?: number | null;
+  originLng?: number | null;
+  originName?: string | null;
 }
 
 const slotMeta: Record<TimeSlot, { label: string; icon: typeof Sun }> = {
@@ -23,7 +26,7 @@ const slotMeta: Record<TimeSlot, { label: string; icon: typeof Sun }> = {
   evening: { label: "Evening", icon: Moon },
 };
 
-export function Timeline({ items, dayNumber, totalDays, activeItemId, onHover, onSelect, onDelete, onDayChange, onAdd }: Props) {
+export function Timeline({ items, dayNumber, totalDays, activeItemId, onHover, onSelect, onDelete, onDayChange, onAdd, originLat = null, originLng = null, originName = null }: Props) {
   const forDay = items.filter((i) => i.day_number === dayNumber);
   const bySlot = (slot: TimeSlot) => forDay.filter((i) => i.time_slot === slot);
 
@@ -64,6 +67,9 @@ export function Timeline({ items, dayNumber, totalDays, activeItemId, onHover, o
                 <ActivityFormDialog
                   defaultSlot={slot}
                   dayNumber={dayNumber}
+                  originLat={originLat}
+                  originLng={originLng}
+                  originName={originName}
                   onSubmit={(draft) => onAdd(draft)}
                   trigger={
                     <Button variant="ghost" size="sm" className="h-7 text-xs">

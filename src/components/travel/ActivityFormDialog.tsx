@@ -7,11 +7,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { ItineraryItem, TimeSlot } from "@/lib/trips/types";
 import { SLOTS } from "@/lib/trips/types";
+import { NearbyPlacesBrowser, type NearbyPlace } from "./NearbyPlacesBrowser";
 
 interface Props {
   trigger: ReactNode;
   defaultSlot?: TimeSlot;
   dayNumber: number;
+  originLat?: number | null;
+  originLng?: number | null;
+  originName?: string | null;
   onSubmit: (draft: Partial<ItineraryItem> & { time_slot: TimeSlot }) => Promise<void> | void;
 }
 
@@ -28,7 +32,14 @@ const TITLE_SUGGESTIONS: Record<string, string[]> = {
   nature: ["National park visit", "Beach afternoon", "Mountain viewpoint", "Botanical garden", "Sunset watching", "Nature reserve walk"],
 };
 
-export function ActivityFormDialog({ trigger, defaultSlot = "morning", dayNumber, onSubmit }: Props) {
+const AMENITY_MAP: Record<string, string[]> = {
+  restaurant: ["restaurant"],
+  cafe: ["cafe"],
+};
+
+export function ActivityFormDialog({
+  trigger, defaultSlot = "morning", dayNumber, originLat = null, originLng = null, originName = null, onSubmit,
+}: Props) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [slot, setSlot] = useState<TimeSlot>(defaultSlot);
@@ -38,6 +49,8 @@ export function ActivityFormDialog({ trigger, defaultSlot = "morning", dayNumber
   const [address, setAddress] = useState("");
   const [startTime, setStartTime] = useState("");
   const [cost, setCost] = useState("");
+  const [lat, setLat] = useState<number | null>(null);
+  const [lng, setLng] = useState<number | null>(null);
 
   function reset() {
     setSlot(defaultSlot);
@@ -47,6 +60,19 @@ export function ActivityFormDialog({ trigger, defaultSlot = "morning", dayNumber
     setAddress("");
     setStartTime("");
     setCost("");
+    setLat(null);
+    setLng(null);
+  }
+
+  function handlePick(p: NearbyPlace) {
+    setTitle(p.name);
+    setAddress(p.address ?? "");
+    setLat(p.lat);
+    setLng(p.lng);
+    const details = [p.cuisine ? `Cuisine: ${p.cuisine}` : null, p.phone ? `Phone: ${p.phone}` : null, p.website ? p.website : null]
+      .filter(Boolean)
+      .join(" · ");
+    if (details) setDescription(details);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -60,6 +86,8 @@ export function ActivityFormDialog({ trigger, defaultSlot = "morning", dayNumber
         description: description.trim() || null,
         place_type: placeType,
         address: address.trim() || null,
+        lat,
+        lng,
         start_time: startTime || null,
         cost: cost ? Number(cost) : 0,
       });
@@ -70,26 +98,28 @@ export function ActivityFormDialog({ trigger, defaultSlot = "morning", dayNumber
     }
   }
 
+  const showBrowser = placeType in AMENITY_MAP;
+  const suggestions = TITLE_SUGGESTIONS[placeType] ?? [];
+  const titleInSuggestions = suggestions.includes(title);
+
   return (
     <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (v) setSlot(defaultSlot); }}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg max-h-[92vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add planned activity · Day {dayNumber}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-3">
-          <div className="space-y-1.5">
-            <Label htmlFor="act-title">Title</Label>
-            <Select value={title} onValueChange={setTitle}>
-              <SelectTrigger id="act-title"><SelectValue placeholder="Choose an activity" /></SelectTrigger>
-              <SelectContent>
-                {(TITLE_SUGGESTIONS[placeType] ?? []).map((t) => (
-                  <SelectItem key={t} value={t}>{t}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
           <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label>Type</Label>
+              <Select value={placeType} onValueChange={(v) => { setPlaceType(v); setTitle(""); setLat(null); setLng(null); setAddress(""); }}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {PLACE_TYPES.map((t) => <SelectItem key={t} value={t} className="capitalize">{t}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="space-y-1.5">
               <Label>Time of day</Label>
               <Select value={slot} onValueChange={(v) => setSlot(v as TimeSlot)}>
@@ -99,20 +129,43 @@ export function ActivityFormDialog({ trigger, defaultSlot = "morning", dayNumber
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="act-title">Title</Label>
+            {showBrowser ? (
+              <Input
+                id="act-title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Pick a place below or type a title"
+              />
+            ) : (
+              <Select value={titleInSuggestions ? title : ""} onValueChange={setTitle}>
+                <SelectTrigger id="act-title"><SelectValue placeholder="Choose an activity" /></SelectTrigger>
+                <SelectContent>
+                  {suggestions.map((t) => (
+                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+
+          {showBrowser && (
+            <NearbyPlacesBrowser
+              originLat={originLat}
+              originLng={originLng}
+              originName={originName}
+              amenities={AMENITY_MAP[placeType]}
+              onPick={handlePick}
+            />
+          )}
+
+          <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="act-start">Start time</Label>
               <Input id="act-start" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>Type</Label>
-              <Select value={placeType} onValueChange={(v) => { setPlaceType(v); setTitle(""); }}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {PLACE_TYPES.map((t) => <SelectItem key={t} value={t} className="capitalize">{t}</SelectItem>)}
-                </SelectContent>
-              </Select>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="act-cost">Cost ($)</Label>

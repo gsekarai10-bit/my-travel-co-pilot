@@ -208,6 +208,9 @@ function Workspace() {
                     onSelect={setActiveItemId}
                     onDelete={(id) => removeItem.mutate(id)}
                     onDayChange={setDayNumber}
+                    originLat={trip.destination_lat}
+                    originLng={trip.destination_lng}
+                    originName={trip.destination}
                     onAdd={async (draft) => { await addItem.mutateAsync({ slot: draft.time_slot, draft }); }}
                   />
 
