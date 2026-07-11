@@ -80,7 +80,14 @@ export function ActivityFormDialog({ trigger, defaultSlot = "morning", dayNumber
         <form onSubmit={handleSubmit} className="space-y-3">
           <div className="space-y-1.5">
             <Label htmlFor="act-title">Title</Label>
-            <Input id="act-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Eiffel Tower visit" autoFocus required />
+            <Select value={title} onValueChange={setTitle}>
+              <SelectTrigger id="act-title"><SelectValue placeholder="Choose an activity" /></SelectTrigger>
+              <SelectContent>
+                {(TITLE_SUGGESTIONS[placeType] ?? []).map((t) => (
+                  <SelectItem key={t} value={t}>{t}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
