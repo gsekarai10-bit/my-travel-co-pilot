@@ -17,6 +17,17 @@ interface Props {
 
 const PLACE_TYPES = ["attraction", "restaurant", "cafe", "hotel", "activity", "transport", "shopping", "nature"];
 
+const TITLE_SUGGESTIONS: Record<string, string[]> = {
+  attraction: ["City walking tour", "Museum visit", "Historic landmark", "Scenic viewpoint", "Art gallery", "Guided sightseeing"],
+  restaurant: ["Local cuisine dinner", "Fine dining experience", "Street food tour", "Rooftop restaurant", "Traditional lunch", "Seafood dinner"],
+  cafe: ["Morning coffee stop", "Brunch at local cafe", "Dessert & pastries", "Specialty coffee tasting", "Tea house visit"],
+  hotel: ["Hotel check-in", "Hotel check-out", "Spa & wellness session", "Pool & lounge time", "Breakfast at hotel"],
+  activity: ["Kayaking adventure", "Hiking excursion", "Bike tour", "Cooking class", "Yoga session", "Boat cruise", "Snorkeling trip"],
+  transport: ["Airport transfer", "Train to next city", "Car rental pickup", "Ferry crossing", "Taxi to venue", "Metro day pass"],
+  shopping: ["Local market visit", "Souvenir shopping", "Boutique browsing", "Mall shopping trip", "Artisan crafts market"],
+  nature: ["National park visit", "Beach afternoon", "Mountain viewpoint", "Botanical garden", "Sunset watching", "Nature reserve walk"],
+};
+
 export function ActivityFormDialog({ trigger, defaultSlot = "morning", dayNumber, onSubmit }: Props) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -69,7 +80,14 @@ export function ActivityFormDialog({ trigger, defaultSlot = "morning", dayNumber
         <form onSubmit={handleSubmit} className="space-y-3">
           <div className="space-y-1.5">
             <Label htmlFor="act-title">Title</Label>
-            <Input id="act-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Eiffel Tower visit" autoFocus required />
+            <Select value={title} onValueChange={setTitle}>
+              <SelectTrigger id="act-title"><SelectValue placeholder="Choose an activity" /></SelectTrigger>
+              <SelectContent>
+                {(TITLE_SUGGESTIONS[placeType] ?? []).map((t) => (
+                  <SelectItem key={t} value={t}>{t}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
@@ -89,7 +107,7 @@ export function ActivityFormDialog({ trigger, defaultSlot = "morning", dayNumber
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>Type</Label>
-              <Select value={placeType} onValueChange={setPlaceType}>
+              <Select value={placeType} onValueChange={(v) => { setPlaceType(v); setTitle(""); }}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {PLACE_TYPES.map((t) => <SelectItem key={t} value={t} className="capitalize">{t}</SelectItem>)}
