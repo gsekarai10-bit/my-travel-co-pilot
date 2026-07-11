@@ -26,7 +26,7 @@ const slotMeta: Record<TimeSlot, { label: string; icon: typeof Sun }> = {
   evening: { label: "Evening", icon: Moon },
 };
 
-export function Timeline({ items, dayNumber, totalDays, activeItemId, onHover, onSelect, onDelete, onDayChange, onAdd }: Props) {
+export function Timeline({ items, dayNumber, totalDays, activeItemId, onHover, onSelect, onDelete, onDayChange, onAdd, originLat = null, originLng = null, originName = null }: Props) {
   const forDay = items.filter((i) => i.day_number === dayNumber);
   const bySlot = (slot: TimeSlot) => forDay.filter((i) => i.time_slot === slot);
 
