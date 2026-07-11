@@ -15,6 +15,9 @@ interface Props {
   onDelete: (id: string) => void;
   onDayChange: (day: number) => void;
   onAdd: (draft: Partial<ItineraryItem> & { time_slot: TimeSlot }) => Promise<void> | void;
+  originLat?: number | null;
+  originLng?: number | null;
+  originName?: string | null;
 }
 
 const slotMeta: Record<TimeSlot, { label: string; icon: typeof Sun }> = {
