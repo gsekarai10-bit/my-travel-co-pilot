@@ -67,6 +67,9 @@ export function Timeline({ items, dayNumber, totalDays, activeItemId, onHover, o
                 <ActivityFormDialog
                   defaultSlot={slot}
                   dayNumber={dayNumber}
+                  originLat={originLat}
+                  originLng={originLng}
+                  originName={originName}
                   onSubmit={(draft) => onAdd(draft)}
                   trigger={
                     <Button variant="ghost" size="sm" className="h-7 text-xs">
