@@ -12,13 +12,20 @@ export interface NearbyPlace {
   phone: string | null;
   website: string | null;
   stars: number | null;
+  category: string | null;
+}
+
+export interface OsmFilter {
+  key: string;
+  value?: string; // omit for any value
 }
 
 interface Props {
   originLat: number | null;
   originLng: number | null;
   originName: string | null;
-  amenities: string[]; // e.g. ["restaurant","cafe"]
+  filters: OsmFilter[];
+  titleKeyword?: string | null;
   onPick: (p: NearbyPlace) => void;
 }
 
@@ -36,9 +43,15 @@ async function geocode(query: string): Promise<[number, number] | null> {
   }
 }
 
-async function fetchNearby(lat: number, lng: number, amenities: string[]): Promise<NearbyPlace[]> {
-  const filters = amenities.map((a) => `node["amenity"="${a}"](around:2500,${lat},${lng});`).join("");
-  const query = `[out:json][timeout:20];(${filters});out body 40;`;
+async function fetchNearby(lat: number, lng: number, filters: OsmFilter[]): Promise<NearbyPlace[]> {
+  const clauses = filters
+    .map((f) => {
+      const tag = f.value ? `["${f.key}"="${f.value}"]` : `["${f.key}"]`;
+      // include nodes, ways, relations for broader coverage
+      return `node${tag}(around:3500,${lat},${lng});way${tag}(around:3500,${lat},${lng});`;
+    })
+    .join("");
+  const query = `[out:json][timeout:25];(${clauses});out center 60;`;
   const res = await fetch("https://overpass-api.de/api/interpreter", {
     method: "POST",
     body: "data=" + encodeURIComponent(query),
@@ -47,27 +60,37 @@ async function fetchNearby(lat: number, lng: number, amenities: string[]): Promi
   if (!res.ok) throw new Error("Overpass request failed");
   const data = await res.json();
   const els: any[] = data.elements ?? [];
+  const seen = new Set<string>();
   return els
     .filter((e) => e.tags?.name)
     .map((e) => {
       const t = e.tags ?? {};
       const addrParts = [t["addr:housenumber"], t["addr:street"], t["addr:city"]].filter(Boolean);
+      const category = t.amenity ?? t.tourism ?? t.leisure ?? t.shop ?? t.natural ?? null;
+      const center = e.center ?? { lat: e.lat, lon: e.lon };
       return {
-        id: String(e.id),
+        id: `${e.type}/${e.id}`,
         name: t.name as string,
-        lat: e.lat,
-        lng: e.lon,
-        address: addrParts.length ? addrParts.join(" ") : null,
+        lat: center.lat,
+        lng: center.lon,
+        address: addrParts.length ? addrParts.join(" ") : t["addr:full"] ?? null,
         cuisine: t.cuisine ?? null,
         phone: t.phone ?? t["contact:phone"] ?? null,
         website: t.website ?? t["contact:website"] ?? null,
         stars: t.stars ? Number(t.stars) : null,
+        category,
       } as NearbyPlace;
     })
-    .slice(0, 25);
+    .filter((p) => {
+      const key = `${p.name}|${p.lat.toFixed(4)}|${p.lng.toFixed(4)}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, 40);
 }
 
-export function NearbyPlacesBrowser({ originLat, originLng, originName, amenities, onPick }: Props) {
+export function NearbyPlacesBrowser({ originLat, originLng, originName, filters, titleKeyword, onPick }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [places, setPlaces] = useState<NearbyPlace[]>([]);
@@ -81,7 +104,7 @@ export function NearbyPlacesBrowser({ originLat, originLng, originName, amenitie
   const LRef = useRef<any>(null);
   const markersRef = useRef<Record<string, any>>({});
 
-  const amenitiesKey = useMemo(() => amenities.join(","), [amenities]);
+  const filtersKey = useMemo(() => filters.map((f) => `${f.key}=${f.value ?? "*"}`).join(","), [filters]);
 
   // Load center if not provided
   useEffect(() => {
@@ -101,13 +124,13 @@ export function NearbyPlacesBrowser({ originLat, originLng, originName, amenitie
 
   // Fetch nearby
   useEffect(() => {
-    if (!center) return;
+    if (!center || filters.length === 0) return;
     let cancelled = false;
     (async () => {
       setLoading(true);
       setError(null);
       try {
-        const results = await fetchNearby(center[0], center[1], amenities);
+        const results = await fetchNearby(center[0], center[1], filters);
         if (!cancelled) setPlaces(results);
       } catch (e) {
         if (!cancelled) setError(e instanceof Error ? e.message : "Failed to search");
@@ -118,7 +141,22 @@ export function NearbyPlacesBrowser({ originLat, originLng, originName, amenitie
     return () => {
       cancelled = true;
     };
-  }, [center, amenitiesKey]);
+  }, [center, filtersKey]);
+
+  // Filter results by title keyword
+  const visible = useMemo(() => {
+    if (!titleKeyword) return places;
+    const words = titleKeyword.toLowerCase().split(/\s+/).filter((w) => w.length > 3);
+    if (!words.length) return places;
+    const scored = places
+      .map((p) => {
+        const hay = `${p.name} ${p.category ?? ""} ${p.cuisine ?? ""}`.toLowerCase();
+        const score = words.reduce((s, w) => s + (hay.includes(w) ? 1 : 0), 0);
+        return { p, score };
+      })
+      .sort((a, b) => b.score - a.score);
+    return scored.map((x) => x.p);
+  }, [places, titleKeyword]);
 
   // Init map
   useEffect(() => {
@@ -150,7 +188,7 @@ export function NearbyPlacesBrowser({ originLat, originLng, originName, amenitie
       map.removeLayer(markersRef.current[id]);
       delete markersRef.current[id];
     }
-    places.forEach((p) => {
+    visible.forEach((p) => {
       const isActive = p.id === activeId;
       const icon = L.divIcon({
         className: "",
@@ -163,35 +201,37 @@ export function NearbyPlacesBrowser({ originLat, originLng, originName, amenitie
       m.on("click", () => setActiveId(p.id));
       markersRef.current[p.id] = m;
     });
-    if (places.length > 1) {
-      const bounds = L.latLngBounds(places.map((p) => [p.lat, p.lng] as [number, number]));
+    if (visible.length > 1) {
+      const bounds = L.latLngBounds(visible.map((p) => [p.lat, p.lng] as [number, number]));
       map.fitBounds(bounds.pad(0.2), { animate: false });
     }
-  }, [places, activeId]);
+  }, [visible, activeId]);
 
   // Fly to active
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !activeId) return;
-    const p = places.find((x) => x.id === activeId);
+    const p = visible.find((x) => x.id === activeId);
     if (p) map.flyTo([p.lat, p.lng], 16, { duration: 0.6 });
-  }, [activeId, places]);
+  }, [activeId, visible]);
+
+  const label = filters.map((f) => f.value ?? f.key).join(" / ");
 
   return (
     <div className="space-y-2 rounded-lg border border-border bg-card/40 p-2">
       <div className="flex items-center justify-between px-1">
         <div className="text-xs font-medium text-muted-foreground">
-          Nearby {amenities.join(" & ")} {originName ? `near ${originName}` : ""}
+          Nearby {label} {originName ? `near ${originName}` : ""}
         </div>
         {loading && <Loader2 className="size-3.5 animate-spin text-muted-foreground" />}
       </div>
       <div ref={mapDiv} className="h-40 w-full overflow-hidden rounded-md border border-border bg-muted" />
       {error && <div className="px-1 text-xs text-destructive">{error}</div>}
       <div className="max-h-52 space-y-1.5 overflow-y-auto pr-1 myt-scrollbar">
-        {places.length === 0 && !loading && !error && (
+        {visible.length === 0 && !loading && !error && (
           <div className="p-3 text-center text-xs text-muted-foreground">No places found nearby.</div>
         )}
-        {places.map((p) => {
+        {visible.map((p) => {
           const isActive = p.id === activeId;
           return (
             <div
@@ -213,6 +253,7 @@ export function NearbyPlacesBrowser({ originLat, originLng, originName, amenitie
                   )}
                 </div>
                 <div className="mt-0.5 flex flex-wrap gap-x-2 text-[11px] text-muted-foreground">
+                  {p.category && <span className="capitalize">{p.category.replace(/_/g, " ")}</span>}
                   {p.cuisine && <span className="capitalize">{p.cuisine.replace(/;/g, ", ")}</span>}
                   {p.address && <span className="truncate">{p.address}</span>}
                 </div>
