@@ -139,7 +139,8 @@ export function ActivityFormDialog({
     }
   }
 
-  const showBrowser = placeType in AMENITY_MAP;
+  const filters = FILTER_MAP[placeType] ?? [];
+  const showBrowser = filters.length > 0;
   const suggestions = TITLE_SUGGESTIONS[placeType] ?? [];
   const titleInSuggestions = suggestions.includes(title);
 
@@ -174,22 +175,16 @@ export function ActivityFormDialog({
 
           <div className="space-y-1.5">
             <Label htmlFor="act-title">Title</Label>
-            {showBrowser ? (
-              <Input
-                id="act-title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Pick a place below or type a title"
-              />
-            ) : (
-              <Select value={titleInSuggestions ? title : ""} onValueChange={setTitle}>
-                <SelectTrigger id="act-title"><SelectValue placeholder="Choose an activity" /></SelectTrigger>
-                <SelectContent>
-                  {suggestions.map((t) => (
-                    <SelectItem key={t} value={t}>{t}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <Select value={titleInSuggestions ? title : ""} onValueChange={setTitle}>
+              <SelectTrigger id="act-title"><SelectValue placeholder="Choose an activity" /></SelectTrigger>
+              <SelectContent>
+                {suggestions.map((t) => (
+                  <SelectItem key={t} value={t}>{t}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {title && !titleInSuggestions && (
+              <p className="text-[11px] text-muted-foreground">Selected from map: {title}</p>
             )}
           </div>
 
@@ -198,10 +193,12 @@ export function ActivityFormDialog({
               originLat={originLat}
               originLng={originLng}
               originName={originName}
-              amenities={AMENITY_MAP[placeType]}
+              filters={filters}
+              titleKeyword={titleInSuggestions ? title : null}
               onPick={handlePick}
             />
           )}
+
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
