@@ -268,21 +268,36 @@ export function NearbyPlacesBrowser({ originLat, originLng, originName, filters,
                     Use this place
                   </Button>
                   <a
-                    href={`https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}(${encodeURIComponent(p.name)})`}
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.name + (p.address ? " " + p.address : ""))}%40${p.lat},${p.lng}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-0.5 text-[11px] text-primary hover:underline"
+                    onClick={(e) => e.stopPropagation()}
+                    className="inline-flex items-center gap-0.5 rounded border border-border bg-background px-1.5 py-0.5 text-[11px] font-medium text-primary hover:bg-accent"
+                    title="Open exact location in Google Maps"
                   >
-                    Google Maps <ExternalLink className="size-3" />
+                    <MapPin className="size-3" /> Google Maps <ExternalLink className="size-2.5" />
                   </a>
-                  {p.website && (
+                  {p.website ? (
                     <a
-                      href={p.website}
+                      href={p.website.startsWith("http") ? p.website : `https://${p.website}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-0.5 text-[11px] text-primary hover:underline"
+                      onClick={(e) => e.stopPropagation()}
+                      className="inline-flex max-w-[160px] items-center gap-0.5 truncate rounded border border-border bg-background px-1.5 py-0.5 text-[11px] font-medium text-primary hover:bg-accent"
+                      title={p.website}
                     >
-                      Website <ExternalLink className="size-3" />
+                      Website <ExternalLink className="size-2.5" />
+                    </a>
+                  ) : (
+                    <a
+                      href={`https://www.google.com/search?q=${encodeURIComponent(p.name + " " + (p.address ?? ""))}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="inline-flex items-center gap-0.5 rounded border border-border bg-background px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground hover:bg-accent"
+                      title="Search the web for this place"
+                    >
+                      Search web <ExternalLink className="size-2.5" />
                     </a>
                   )}
                 </div>
